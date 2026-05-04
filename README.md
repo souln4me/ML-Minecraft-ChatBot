@@ -30,7 +30,7 @@
 
 2. Copia la siguiente estructura en el archivo:
    ```env
-   API_KEY=tu_clave_api_aqui
+   OPENAI_API_KEY=tu_clave_api_aqui
    MODEL_NAME=meta/llama-3.3-70b-instruct
    ```
 
