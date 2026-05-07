@@ -1,0 +1,38 @@
+"Proyectiles": "Flechas, Tridentes, bolas de nieve"
+
+
+/*
+"enderman": "Tienen 40 puntos de vida. Son INMUNES a todos los proyectiles (flechas, tridentes, bolas de nieve). Se teletransportan antes de recibir el impacto. ESTRATEGIA: Usa un cubo de agua a tus pies (el agua los daña), o construye un techo de 2 bloques de altura para refugiarte (miden 3 bloques y no caben). No los mires a los ojos.",
+"enderman": "Corazones de vida: 20; Altura en bloques: 3; Inmunidades: Proyectiles; Comportamiento: Neutral ; Características: Capacidad de teletransporte. Capacidad de recoger bloques del entorno, menos los cofres en general. El agua les daña (Ejemplos: colocada con cubo de agua, mar, lluvia). Comportamiento hostil previo contacto visual."
+*/
+
+{
+  "diamante": "Se encuentran en capas negativas (lo ideal es la -59). Ya NO se encuentran en la capa 12 desde la actualización 1.18.",
+  "enderman": "Son inmunes a los proyectiles (arcos, ballestas). Se teletransportan antes del impacto. Para matarlos: usa un cubo de agua a tus pies (les hace daño) o construye un techo de 2 bloques de altura para refugiarte y golpearles las piernas.",
+  "ghast": "Para matarlos: devuelve sus bolas de fuego golpeándolas en el momento justo, o dispárales con un arco.",
+  "creeper": "Para matarlos sin que exploten: usa la estrategia de golpear y retroceder rápidamente, o mátalos a distancia con un arco.",
+  "cama en el nether": "ADVERTENCIA CRÍTICA: NUNCA intentes dormir en una cama en el Nether o en el End. Las camas explotan con mucha fuerza en estas dimensiones y te matarán al instante.",
+  "portal al nether": "El portal al Nether no se craftea en una mesa. Debes construir un marco rectangular en el mundo usando un mínimo de 10 bloques de Obsidiana (normalmente de 4 de ancho por 5 de alto). Luego, debes prender fuego en el interior usando un Encendedor (Pedernal y Hierro).",
+  "warden": "El Warden es el mob más peligroso del juego y es ciego (te detecta por el sonido y el olfato). Si estás en la Oscuridad Profunda (Deep Dark), TIENES que caminar agachado (tecla Shift) para no hacer ruido. NO intentes pelear con él, la estrategia es distraerlo lanzando bolas de nieve y huir.",
+  "aldeanos": "Puedes cambiar la profesión de un aldeano que no ha tradeado si le pones un bloque de trabajo cerca. El aldeano más útil es el Bibliotecario (necesita un Atril), ya que puede venderte el encantamiento de Reparación (Mending).",
+  "wither": "Es un jefe que debes invocar manualmente en el mundo. Se invoca colocando 4 bloques de Arena de Almas en forma de 'T', y poniendo 3 Calaveras de Esqueleto Wither encima. ADVERTENCIA: Nunca lo invoques cerca de tu base, ya que su primera explosión y sus ataques destruirán tus construcciones.",
+  "elytras": "Las Elytras son alas que te permiten planear. NO se pueden craftear. Solo se encuentran en los Barcos del End, en las Ciudades del End (después de derrotar a la Dragona). Para volar infinitamente con ellas, debes usar Cohetes de Fuegos Artificiales en el aire.",
+  "reparacion": "El encantamiento de Reparación (Mending) no se puede obtener en la mesa de encantamientos. Solo se consigue explorando (cofres), pescando, o tradeando con un aldeano Bibliotecario. Repara tus herramientas usando tu experiencia (XP)."
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

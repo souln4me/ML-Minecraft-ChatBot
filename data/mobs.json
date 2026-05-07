@@ -1,0 +1,10 @@
+{
+  "entidades": {
+    "enderman": "Corazones de vida: 20; Altura en bloques: 3; Inmunidades: Proyectiles; Comportamiento: Neutral; Características: Capacidad de teletransporte. Capacidad de recoger bloques del entorno, menos los cofres en general. El agua les daña (Ejemplos: colocada con cubo de agua, mar, lluvia). Comportamiento hostil previo contacto visual."
+  },
+  "diccionario": {
+    "proyectiles": "Flechas disparadas por arcos, Tridentes lanzados, Bolas de Nieve.",
+    "contacto visual": "Mirar directamente a los ojos o cara de la entidad con la cruz del jugador.",
+    "cubo de agua": "Objeto que derrama una corriente de agua al usarse en el suelo."
+  }
+}
