@@ -45,15 +45,34 @@ def buscar_contexto(mensaje_usuario, quiere_receta):
     mensaje_limpio = mensaje_usuario.lower()
     contexto_encontrado = []
     
-    # 1. Buscar en Recetas (SOLO SI EL USUARIO QUIERE CRAFTEAR)
+    # 1. Buscar en Recetas (LA SOLUCIÓN DEFINITIVA: Listas Markdown Nativas)
     if quiere_receta and DB_RECETAS:
+        recetas_encontradas = ""
         for item, receta in DB_RECETAS.items():
             if item in mensaje_limpio:
-                if "\n" in receta:
-                    cuerpo = receta
+                # A. Si es una armadura agrupada (separada por ///)
+                if "///" in receta:
+                    piezas = receta.split("///")
+                    for p in piezas:
+                        p = p.strip()
+                        if ":" in p and "Fila" in p:
+                            titulo, filas = p.split(":", 1) # Separa el título de las filas
+                            # Convertimos en lista Markdown
+                            filas_md = "- " + filas.replace("|", "\n- ").strip()
+                            recetas_encontradas += f"### {titulo.strip()}\n{filas_md}\n\n"
+                        else:
+                            recetas_encontradas += f"{p}\n\n"
+                
+                # B. Si es una receta individual (Picos, flechas, etc.)
                 else:
-                    cuerpo = "* " + receta.replace(" | ", "\n* ")
-                contexto_encontrado.append(f"### Receta de {item.title()}\n{cuerpo}\n\n")
+                    if "Fila" in receta:
+                        filas_md = "- " + receta.replace("|", "\n- ").strip()
+                        recetas_encontradas += f"### Receta de {item.title()}\n{filas_md}\n\n"
+                    else:
+                        recetas_encontradas += f"### {item.title()}\n{receta}\n\n"
+        
+        if recetas_encontradas:
+            contexto_encontrado.append(f"[INICIO_RECETAS]\n{recetas_encontradas.strip()}\n[FIN_RECETAS]\n")
                 
     # 2. Buscar en Mobs 
     if DB_MOBS and "entidades" in DB_MOBS:
@@ -81,14 +100,14 @@ def buscar_contexto(mensaje_usuario, quiere_receta):
 
 # 3. PROMPT DEL SISTEMA
 SYSTEM_PROMPT = """
-Eres un experto guía de Minecraft Vanilla (sin mods) para principiantes. Tu misión es ayudar al jugador.
+Eres un experto guía de Minecraft Vanilla (sin mods) para principiantes. Tu misión es ayudar al jugador manteniendo siempre una actitud de compañero de aventuras.
 
-REGLAS GENERALES:
-1. Proporcionas información clara sobre mobs, biomas y progresión con un tono amigable.
+REGLAS DE COMPORTAMIENTO Y FORMATO:
+1. CONVERSACIÓN PRIMERO: Tu rasgo principal es ser conversacional. NUNCA entregues datos crudos o recetas de inmediato. SIEMPRE debes iniciar tu mensaje con 1 o 2 líneas de charla amigable y útil sobre el tema antes de dar la información técnica.
 2. ESTRUCTURAS: Portales (Nether/End) y refugios se CONSTRUYEN en el mundo, NO se craftean. Nunca des recetas para ellos.
-3. ESTILO VISUAL: Eres un bot moderno y amigable. Debes usar emojis temáticos de Minecraft de forma natural. Usa párrafos cortos.
+3. ESTILO VISUAL: Usa emojis temáticos de Minecraft de forma natural. Usa párrafos cortos para facilitar la lectura.
 4. FORMATO MARKDOWN: Para hacer listas, NUNCA uses asteriscos. Usa siempre guiones "- " (guion y espacio). Debes hacer un salto de línea antes de cada guion.
-5. JERARQUÍA VISUAL: NUNCA uses viñetas (*) para títulos o encabezados (como "Día 1", "Día 2"). Usa texto en negrita (**Día 1:**) o títulos Markdown (### Día 1) para separar secciones.
+5. JERARQUÍA VISUAL: NUNCA uses viñetas (*) para títulos o encabezados. Usa texto en negrita (**Día 1:**) o títulos Markdown (### Día 1) para separar secciones.
 6. TERMINOLOGÍA OFICIAL: Usa exclusivamente los nombres oficiales del juego en español. Di "Pico" (NUNCA "piqueta"), "Craftear", "Mesa de crafteo", "Adoquín", "Lingote de hierro", etc.
 """
 
@@ -110,7 +129,7 @@ def chat():
         textos_usuario = " ".join([msg["content"] for msg in history[-3:] if msg["role"] == "user"]).lower()
         
         # MOTOR DE INTENCIÓN (Añadimos "craftean" y "armadura" para asegurar)
-        palabras_crafteo = ["hacer", "craftear", "craftean", "crear", "receta", "fabrica", "construir", "como se hace", "armadura"]
+        palabras_crafteo = ["hacer", "crafte", "crear", "receta", "fabrica", "construir", "como se hace", "armadura"]
         quiere_receta = any(palabra in textos_usuario for palabra in palabras_crafteo)
         
         # Buscar contexto pasando la intención
@@ -118,27 +137,26 @@ def chat():
         
         if contexto_oficial:
             instruccion_rag = f"""
-            INFORMACION PARA TU RESPUESTA:
+            [DATOS OFICIALES EXTRAÍDOS]
             {contexto_oficial}
             
-            INSTRUCCIÓN DE RESPUESTA DE OBLIGADO CUMPLIMIENTO:
-            1. INICIO FLUÍDO: Entra SIEMPRE directo al tema con entusiasmo (ej: "¡Claro que sí!", "¡Buena pregunta!"). TIENES ESTRICTAMENTE PROHIBIDO repetir siempre "¡Hola!" u "¡Hola de nuevo!".
-            2. RECETAS: Si en la información arriba ves "### Receta de...", CÓPIALA EXACTAMENTE respetando sus saltos de línea.
-            3. MOBS Y GUÍAS: Úsalos como tu conocimiento interno para redactar consejos usando guiones (-). REGLA INQUEBRANTABLE: NUNCA des consejos que contradigan esta información.
-            4. CIERRE: Deja una línea en blanco al final y da una despedida dinámica.
+            GENERA TU RESPUESTA SIGUIENDO ESTRICTAMENTE ESTOS PASOS EN ORDEN:
+            Paso 1: Escribe tu introducción conversacional obligatoria (1 o 2 líneas). Tienes PROHIBIDO usar las frases "¡Hola!", "¡Hola de nuevo!" y "Ahora que...". Entra directo al tema con entusiasmo.
+            Paso 2: Si en los datos extraídos ves el "[INICIO_RECETAS]", copia TODO su contenido exacto justo debajo de tu introducción. No imprimas las etiquetas de inicio y fin. REGLA DE ORO: Si el usuario te pide un objeto que NO está en los datos extraídos (ej. pide espada de esmeralda y solo ves espada de hierro), o si te pide un crafteo y no hay recetas extraídas, TIENES PROHIBIDO inventarlo o adaptarlo. Debes decirle que no tienes ese crafteo.
+            Paso 3: Si los datos contienen información sobre Mobs o Guías, redacta tus consejos usando guiones ("- "). REGLA CRÍTICA: Basa tus consejos 100% en la info provista; si dice que es inmune a proyectiles, TIENES ABSOLUTAMENTE PROHIBIDO sugerir arcos o flechas.
             """
         else:
-            # EL ESCUDO DE PYTHON: Si quiere receta y no hay datos, la IA es amordazada.
+            # EL ESCUDO DE PYTHON (Nivel Máximo)
             if quiere_receta:
                 instruccion_rag = """
-                [ALERTA DE SISTEMA]
-                El usuario está pidiendo una receta que NO EXISTE en tu base de datos oficial.
-                TIENES ESTRICTAMENTE PROHIBIDO INVENTAR LA RECETA O DAR INSTRUCCIONES DE CRAFTEO.
-                Tu única respuesta debe ser EXACTAMENTE esta: "Lo siento, no tengo esa receta en mi manual. Asegúrate de pedirme el objeto usando su nombre exacto en español."
+                [ALERTA CRÍTICA DE SISTEMA]
+                El usuario solicitó una receta, pero la búsqueda en la base de datos oficial FALLÓ.
+                TIENES ESTRICTAMENTE PROHIBIDO INVENTAR LA RECETA.
+                Ignora todo tu conocimiento base. Responde ÚNICA Y EXACTAMENTE esto: "Lo siento, no encuentro esa receta. Por favor, pídeme el objeto usando su nombre oficial en español (ej: 'espada' en lugar de 'sword')."
                 """
             else:
                 instruccion_rag = """
-                Responde a la duda general del usuario de forma amigable y útil usando tu conocimiento base de Minecraft Vanilla. No inventes recetas.
+                Responde a la duda general del usuario de forma amigable y útil usando tu conocimiento base de Minecraft Vanilla. No inventes recetas. Tienes PROHIBIDO usar la frase "Ahora que...".
                 """
 
         PROMPT_DINAMICO = SYSTEM_PROMPT + "\n" + instruccion_rag
