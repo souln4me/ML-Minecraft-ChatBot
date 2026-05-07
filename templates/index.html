@@ -401,14 +401,8 @@ async function send() {
             
             // EL ESCUDO ANTI-MUROS DE TEXTO (Versión Mejorada)
             let safeText = botText
-                .replace(/\r/g, "") 
-                .replace(/(?<!\n)(### )/g, "\n\n$1")
-                // Separa Fila Superior/Central/Inferior
-                .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s*Fila)/gi, "$1\n$2")
-                // Salto de línea después de la última fila
-                .replace(/(Fila Inferior:[^\n]+?[a-záéíóúñ])\s+(Con |Simplemente |Coloca |Recuerda |Ahora |Para |Si |¡|La |El |Estas |Estos |Asegúrate )/g, "$1\n\n$2")
-                // NUEVO: Atrapa guiones después de casi cualquier caracter o signo (como ":")
-                .replace(/([a-zA-ZáéíóúñÑ0-9:;.!?])\s+(-\s)/g, "$1\n$2");
+                .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
+                .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ");
             
             botDiv.innerHTML = `${robotImgStr} <div>${marked.parse(safeText, { breaks: true })}</div>`;
             messages.scrollTop = messages.scrollHeight;
@@ -416,14 +410,8 @@ async function send() {
 
         // 5. Guardar en el historial (¡USANDO EL MISMO FILTRO EXACTO!)
         let finalSafeText = botText
-            .replace(/\r/g, "") 
-            .replace(/(?<!\n)(### )/g, "\n\n$1")
-            // Separa Fila Superior/Central/Inferior
-            .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s*Fila)/gi, "$1\n$2")
-            // Salto de línea después de la última fila
-            .replace(/(Fila Inferior:[^\n]+?[a-záéíóúñ])\s+(Con |Simplemente |Coloca |Recuerda |Ahora |Para |Si |¡|La |El |Estas |Estos |Asegúrate )/g, "$1\n\n$2")
-            // NUEVO: Atrapa guiones después de casi cualquier caracter o signo (como ":")
-            .replace(/([a-zA-ZáéíóúñÑ0-9:;.!?])\s+(-\s)/g, "$1\n$2");
+            .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
+            .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ");
             
         history.push({ role: "assistant", content: finalSafeText });
 
