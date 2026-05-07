@@ -399,19 +399,31 @@ async function send() {
             
             botText += decoder.decode(value, { stream: true });
             
-            // EL ESCUDO ANTI-MUROS DE TEXTO
+            // EL ESCUDO ANTI-MUROS DE TEXTO (Versión Mejorada)
             let safeText = botText
-                .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
-                .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ");
+                .replace(/\r/g, "") 
+                .replace(/(?<!\n)(### )/g, "\n\n$1")
+                // Separa Fila Superior/Central/Inferior
+                .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s*Fila)/gi, "$1\n$2")
+                // Salto de línea después de la última fila
+                .replace(/(Fila Inferior:[^\n]+?[a-záéíóúñ])\s+(Con |Recuerda |Ahora |Para |Si |¡|La |El |Estas |Estos |Asegúrate )/g, "$1\n\n$2")
+                // NUEVO: Atrapa guiones después de casi cualquier caracter o signo (como ":")
+                .replace(/([a-zA-ZáéíóúñÑ0-9:;.!?])\s+(-\s)/g, "$1\n$2");
             
             botDiv.innerHTML = `${robotImgStr} <div>${marked.parse(safeText, { breaks: true })}</div>`;
             messages.scrollTop = messages.scrollHeight;
         }
 
-        // 5. Guardar en el historial (¡UNA SOLA VEZ!)
+        // 5. Guardar en el historial (¡USANDO EL MISMO FILTRO EXACTO!)
         let finalSafeText = botText
-            .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
-            .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ");
+            .replace(/\r/g, "") 
+            .replace(/(?<!\n)(### )/g, "\n\n$1")
+            // Separa Fila Superior/Central/Inferior
+            .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s*Fila)/gi, "$1\n$2")
+            // Salto de línea después de la última fila
+            .replace(/(Fila Inferior:[^\n]+?[a-záéíóúñ])\s+(Con |Coloca |Recuerda |Ahora |Para |Si |¡|La |El |Estas |Estos |Asegúrate )/g, "$1\n\n$2")
+            // NUEVO: Atrapa guiones después de casi cualquier caracter o signo (como ":")
+            .replace(/([a-zA-ZáéíóúñÑ0-9:;.!?])\s+(-\s)/g, "$1\n$2");
             
         history.push({ role: "assistant", content: finalSafeText });
 
