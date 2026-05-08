@@ -1,6 +1,6 @@
 {
   "entidades": {
-    "enderman": "Corazones de vida: 20; Altura en bloques: 3; Inmunidades: Proyectiles; Comportamiento: Neutral; Características: Capacidad de teletransporte. Capacidad de recoger bloques del entorno, menos los cofres en general. El agua les daña (Ejemplos: colocada con cubo de agua, mar, lluvia). Comportamiento hostil previo contacto visual."
+    "enderman": "Corazones de vida: 20; Altura en bloques: 3; Comportamiento: Neutral; Características: Capacidad de teletransporte en un espacio (X,Y,Z) de 64x64x64 bloques como máximo. Capacidad de evitar todos los proyectiles teletransportandose instantaneamente antes que lo toquen, nunca recibirá daño alguno de proyectiles.Capacidad de recoger bloques del entorno, menos los cofres en general. El agua les daña (Ejemplos: colocada con cubo de agua, mar, lluvia), por lo que al recibir daño de esta se teletransportan donde no haya (limitado a su espacio de transporte máximo). Comportamiento hostil previo contacto visual."
   },
   "diccionario": {
     "proyectiles": "Flechas disparadas por arcos, Tridentes lanzados, Bolas de Nieve.",

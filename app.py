@@ -16,83 +16,85 @@ client = OpenAI(
 )
 MODEL_NAME = os.getenv("MODEL_NAME", "meta/llama-3.3-70b-instruct")
 
-# 1. CARGA DE DATOS EN MEMORIA (ARQUITECTURA MULTI-DOCUMENTO Y ONTOLÓGICA)
-try:
-    with open("data/recetas.json", "r", encoding="utf-8") as archivo:
-        DB_RECETAS = json.load(archivo)
-    print(f"Base de recetas cargada: {len(DB_RECETAS)} ítems.")
-except Exception as e:
-    print(f"Error al cargar recetas.json: {e}")
-    DB_RECETAS = {}
+# --- 1. CARGA DE BASES DE DATOS ---
+def cargar_json(ruta):
+    try:
+        with open(ruta, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error cargando {ruta}: {e}")
+        return {}
 
-try:
-    with open("data/mobs.json", "r", encoding="utf-8") as archivo:
-        DB_MOBS = json.load(archivo)
-    # Verificamos si tiene la estructura nueva (entidades)
-    entidades_count = len(DB_MOBS.get("entidades", {}))
-    print(f"Base de conocimiento (mobs/diccionario) cargada: {entidades_count} entidades.")
-except Exception as e:
-    print(f"Aviso: No se encontró mobs.json o hubo un error: {e}")
-    DB_MOBS = {}
-    
-try:
-    with open("data/guias.json", "r", encoding="utf-8") as archivo:
-        DB_GUIAS = json.load(archivo)
-    print(f"Guías cargadas: {len(DB_GUIAS)} ítems.")
-except Exception as e:
-    print(f"Error al cargar guias.json: {e}")
-    DB_GUIAS = {}
+DB_RECETAS = cargar_json("data/recetas.json")
+DB_MOBS = cargar_json("data/mobs.json")
+DB_GUIAS = cargar_json("data/guias.json")
 
-# 2. FUNCIÓN DE BÚSQUEDA UNIFICADA (CON BÚSQUEDA CRUZADA)
-def buscar_contexto(mensaje_usuario, quiere_receta):
-    mensaje_limpio = mensaje_usuario.lower()
-    contexto_encontrado = []
-    
-    # 1. Buscar en Recetas (SOLO SI EL USUARIO QUIERE CRAFTEAR)
-    if quiere_receta and DB_RECETAS:
-        for item, receta in DB_RECETAS.items():
-            if item in mensaje_limpio:
-                if "\n" in receta:
-                    cuerpo = receta
+# --- 2. MOTOR DE BÚSQUEDA RAG ---
+def buscar_contexto(query, es_receta):
+    query = query.lower()
+    contexto = []
+
+    # Búsqueda de Recetas
+    if es_receta:
+        recetas_encontradas = ""
+        for item, valor in DB_RECETAS.items():
+            if item in query:
+                # Manejo de armaduras agrupadas (separadas por ///)
+                if "///" in valor:
+                    piezas = valor.split("///")
+                    for p in piezas:
+                        p = p.strip()
+                        if ":" in p and "Fila" in p:
+                            titulo, filas = p.split(":", 1)
+                            filas_md = "- " + filas.replace("|", "\n- ").strip()
+                            recetas_encontradas += f"### {titulo.strip()}\n{filas_md}\n\n"
                 else:
-                    cuerpo = "* " + receta.replace(" | ", "\n* ")
-                contexto_encontrado.append(f"### Receta de {item.title()}\n{cuerpo}\n\n")
-                
-    # 2. Buscar en Mobs 
-    if DB_MOBS and "entidades" in DB_MOBS:
-        for mob, info in DB_MOBS["entidades"].items():
-            if mob in mensaje_limpio:
-                texto_mob = f"### Info sobre {mob.title()}\n{info}"
-                if "diccionario" in DB_MOBS:
-                    terminos_diccionario = []
-                    for termino, definicion in DB_MOBS["diccionario"].items():
-                        if termino in info.lower() or termino in mensaje_limpio:
-                            terminos_diccionario.append(f"- {termino.title()}: {definicion}")
-                    if terminos_diccionario:
-                        texto_mob += "\n\n**Glosario Aplicable:**\n" + "\n".join(terminos_diccionario)
-                contexto_encontrado.append(texto_mob)
-                
-    # 3. Buscar en Guías
-    if DB_GUIAS:
-        for tema, info in DB_GUIAS.items():
-            if tema in mensaje_limpio:
-                contexto_encontrado.append(f"### Guía sobre {tema.title()}\n{info}\n\n")
-                
-    if contexto_encontrado:
-        return "\n\n".join(contexto_encontrado)
-    return ""
+                    # Recetas simples o instrucciones de fundición
+                    if "Fila" in valor:
+                        filas_md = "- " + valor.replace("|", "\n- ").strip()
+                        recetas_encontradas += f"### Receta de {item.title()}\n{filas_md}\n\n"
+                    else:
+                        recetas_encontradas += f"### {item.title()}\n{valor}\n\n"
+        
+        if recetas_encontradas:
+            contexto.append(f"[INICIO_RECETAS]\n{recetas_encontradas.strip()}\n[FIN_RECETAS]")
 
-# 3. PROMPT DEL SISTEMA
+    # Búsqueda de Mobs (Entidades)
+    #
+ #   for mob, info in DB_MOBS.get("entidades", {}).items():
+ #       if mob in query:
+ #           contexto.append(f"### Info sobre {mob.title()}\n{info}")
+
+# Búsqueda de Mobs (Entidades y Diccionario cruzado)
+    for mob, info in DB_MOBS.get("entidades", {}).items():
+        if mob in query: 
+            texto_mob = f"### Características de {mob.title()}\n{info}"
+            
+            # Fase 2: Buscar si alguna palabra del diccionario aplica a esta entidad o a la consulta
+            glosario_aplicable = []
+            for termino, definicion in DB_MOBS.get("diccionario", {}).items():
+                # Buscamos el término tanto en la descripción del mob como en lo que preguntó el usuario
+                if termino in info.lower() or termino in query:
+                    glosario_aplicable.append(f"- **{termino.title()}**: {definicion}")
+            
+            if glosario_aplicable:
+                texto_mob += "\n\n### Glosario Aplicable\n" + "\n".join(glosario_aplicable)
+                
+            contexto.append(texto_mob)
+    # Búsqueda en Guías
+    for guia, contenido in DB_GUIAS.items():
+        if guia in query:
+            contexto.append(f"### Guía de {guia.title()}\n{contenido}")
+
+    return "\n\n".join(contexto)
+
+# --- 3. CONFIGURACIÓN DEL PROMPT ---
 SYSTEM_PROMPT = """
-Eres un experto guía de Minecraft Vanilla (sin mods) para principiantes. Tu misión es ayudar al jugador.
-
-REGLAS GENERALES:
-1. Proporcionas información clara sobre mobs, biomas y progresión con un tono amigable.
-2. ESTRUCTURAS: Portales (Nether/End) y refugios se CONSTRUYEN en el mundo, NO se craftean. Nunca des recetas para ellos.
-3. ESTILO VISUAL: Eres un bot moderno y amigable. Debes usar emojis temáticos de Minecraft de forma natural. Usa párrafos cortos.
-4. FORMATO MARKDOWN: Para hacer listas, NUNCA uses asteriscos. Usa siempre guiones "- " (guion y espacio). Debes hacer un salto de línea antes de cada guion.
-5. JERARQUÍA VISUAL: NUNCA uses viñetas (*) para títulos o encabezados (como "Día 1", "Día 2"). Usa texto en negrita (**Día 1:**) o títulos Markdown (### Día 1) para separar secciones.
-6. TERMINOLOGÍA OFICIAL: Usa exclusivamente los nombres oficiales del juego en español. Di "Pico" (NUNCA "piqueta"), "Craftear", "Mesa de crafteo", "Adoquín", "Lingote de hierro", etc.
+Eres un experto guía de Minecraft Vanilla. Tu misión es acompañar al jugador con entusiasmo.
+REGLAS:
+1. Usa nombres oficiales en español (Adoquín, Mesa de crafteo, etc.).
+2. Formato: Usa guiones "- " para listas y "###" para títulos.
+3. No menciones mods.
 """
 
 @app.route("/")
@@ -108,50 +110,56 @@ def chat():
         # Analizar intención de los últimos mensajes
         last_user_msg = next((m["content"] for m in reversed(history) if m["role"] == "user"), "").lower()
         
-        # MOTOR DE INTENCIÓN (Añadimos "craftean" y "armadura" para asegurar)
-        palabras_crafteo = ["hacer", "craftear", "craftean", "crear", "receta", "fabrica", "construir", "como se hace", "armadura"]
-        quiere_receta = any(palabra in textos_usuario for palabra in palabras_crafteo)
+        palabras_receta = ["como hacer el", "como hacer la", "como hacer un", "como hacer una", "craftear", "receta de", "fabricar"]
+        quiere_receta = any(p in last_user_msg for p in palabras_receta)
         
-        # Buscar contexto pasando la intención
-        contexto_oficial = buscar_contexto(textos_usuario, quiere_receta)
+        contexto_oficial = buscar_contexto(last_user_msg, quiere_receta)
+
+        # 🛡️ CORTOCIRCUITO: Si pide receta y no existe en el JSON
+        if quiere_receta and not contexto_oficial:
+            error_msg = "Lo siento, no encuentro esa receta en mi manual oficial. 😅 Asegúrate de escribir el nombre exacto del objeto (ej: 'hacha de piedra')."
+            
+            # Función generadora interna para el error
+            def generate_error():
+                yield error_msg
+                
+            return Response(stream_with_context(generate_error()), content_type='text/plain')
         
+        # Definir instrucciones RAG
         if contexto_oficial:
-            instruccion_rag = f"""
-            INFORMACION PARA TU RESPUESTA:
+            instruccion = f"""
+            [DATOS OFICIALES]
             {contexto_oficial}
             
-            INSTRUCCIÓN DE RESPUESTA DE OBLIGADO CUMPLIMIENTO:
-            1. INICIO FLUÍDO: Entra SIEMPRE directo al tema con entusiasmo (ej: "¡Claro que sí!", "¡Buena pregunta!"). TIENES ESTRICTAMENTE PROHIBIDO repetir siempre "¡Hola!" u "¡Hola de nuevo!".
-            2. RECETAS: Si en la información arriba ves "### Receta de...", CÓPIALA EXACTAMENTE respetando sus saltos de línea.
-            3. MOBS Y GUÍAS: Úsalos como tu conocimiento interno para redactar consejos usando guiones (-). REGLA INQUEBRANTABLE: NUNCA des consejos que contradigan esta información.
-            4. CIERRE: Deja una línea en blanco al final y da una despedida dinámica.
+            REGLAS SISTEMA DE VERIFICACIÓN Y LÓGICA (PASOS OBLIGATORIOS):
+            1. PASO DE SEGURIDAD (CRÍTICO): Antes de responder, busca palabras clave como "Inmunidades", "Advertencias" o "Limitaciones" en los [DATOS OFICIALES]. 
+            2. CONTRASTE DE PREMISA: Si la acción que el usuario propone (ej: usar flechas) coincide con una Inmunidad o Advertencia (ej: Inmunidad a Proyectiles), tu respuesta DEBE EMPEZAR INVALIDANDO la propuesta del usuario. Usa frases como: "En realidad, no es posible hacer eso porque..." o "Cuidado, esa estrategia fallará debido a...".
+            3. INFERENCIA TÁCTICA: Una vez descartado lo que NO funciona, usa las "Características" (ej: Altura, Debilidades) para construir una alternativa. Si el dato dice "Inmune a X", busca qué cosa "Y" sí le hace daño o qué límite físico tiene.
+            4. DEDUCCIÓN DE ESTRATEGIAS: No te limites a leer. Si el usuario pide ayuda, usa las propiedades físicas (ej: Altura, Vida, Debilidades) para deducir consejos lógicos (ej: si mide 3 bloques, sugiere espacios de 2; si le daña el agua, sugiere baldes).
+            5. ANTES DE ESTILIZAR LA RESPUESTA: Tomate tu tiempo y piensa, repasa las reglas 1,2,3 y 4 para reafirmar tu respuesta, luego estilizala.
+
+            ESTILO DE RESPUESTA:
+            - Sé un guía experto, no un "sí a todo". Si el jugador va a cometer un error técnico basado en los datos, es tu DEBER detenerlo.
+            - Si hay [INICIO_RECETAS], transcríbelas sin cambios.
+            - Mantén el tono amigable pero firme con la verdad técnica de Minecraft.
+            
+            PROHIBICIÓN: 
+                - Tienes PROHIBIDO validar una estrategia que los [DATOS OFICIALES] marquen como inútil o imposible.
+                - Tienes PROHIBIDO poner en tu respuesta similes a "según los [DATOS OFICIALES]" o NOMBRES DE LOS JSON de tu base de conocimiento.
             """
         else:
-            # EL ESCUDO DE PYTHON: Si quiere receta y no hay datos, la IA es amordazada.
-            if quiere_receta:
-                instruccion_rag = """
-                [ALERTA DE SISTEMA]
-                El usuario está pidiendo una receta que NO EXISTE en tu base de datos oficial.
-                TIENES ESTRICTAMENTE PROHIBIDO INVENTAR LA RECETA O DAR INSTRUCCIONES DE CRAFTEO.
-                Tu única respuesta debe ser EXACTAMENTE esta: "Lo siento, no tengo esa receta en mi manual. Asegúrate de pedirme el objeto usando su nombre exacto en español."
-                """
-            else:
-                instruccion_rag = """
-                Responde a la duda general del usuario de forma amigable y útil usando tu conocimiento base de Minecraft Vanilla. No inventes recetas.
-                """
+            instruccion = "Responde amigablemente. Tienes PROHIBIDO inventar recetas si no se te proveen en [DATOS OFICIALES]."
 
-        PROMPT_DINAMICO = SYSTEM_PROMPT + "\n" + instruccion_rag
-        full_messages = [{"role": "system", "content": PROMPT_DINAMICO}] + history
+        messages = [{"role": "system", "content": SYSTEM_PROMPT + "\n" + instruccion}] + history
 
-        completion = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=full_messages,
-            temperature=0.1, 
-            max_tokens=2048,
-            stream=True
-        )
-        
+        # Streaming a la API de Nvidia
         def generate():
+            completion = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                temperature=0.1, # Temperatura baja para mayor precisión técnica
+                stream=True
+            )
             for chunk in completion:
                 if chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
