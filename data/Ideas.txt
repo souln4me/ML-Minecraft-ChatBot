@@ -1,5 +1,6 @@
 "Proyectiles": "Flechas, Tridentes, bolas de nieve"
 
+Utilizar prompts generales para razonamiento oy toma de decisiones.
 
 /*
 "enderman": "Tienen 40 puntos de vida. Son INMUNES a todos los proyectiles (flechas, tridentes, bolas de nieve). Se teletransportan antes de recibir el impacto. ESTRATEGIA: Usa un cubo de agua a tus pies (el agua los daña), o construye un techo de 2 bloques de altura para refugiarte (miden 3 bloques y no caben). No los mires a los ojos.",
