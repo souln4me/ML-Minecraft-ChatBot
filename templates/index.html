@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Minecraft For Dummies Bot</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <link href="https://fonts.cdnfonts.com/css/minecraftia" rel="stylesheet">
 
 <style>
@@ -14,31 +13,34 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Minecraftia', sans-serif;
-    text-shadow: 2px 2px 0px #3f3f3f; /* Efecto de sombra de texto de MC */
+    font-size: 18px;
+    text-shadow: 2px 2px 0px #3f3f3f;
 }
 
 body {
     background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
                       url("{{ url_for('static', filename='image/background.jpg') }}");
-    
-    /* Ajustes para que la imagen cubra toda la pantalla */
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
-
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: 20px;
 }
 
 /* CONTAINER */
 .chat-container {
     width: 100%;
-    max-width: 950px;
-    height: 85vh;
-    background: #2b2b2b;
+    max-width: 1180px;
+    height: 70vh;
+    background-image: url("{{ url_for('static', filename='image/chat_bg.jpg') }}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     border-radius: 0px;
     overflow: hidden;
     display: flex;
@@ -47,80 +49,47 @@ body {
     box-shadow: 8px 8px 0px rgba(0,0,0,0.3);
 }
 
-/* HEADER */
-.chat-header {
-    position: relative; /* Crucial para alinear el robot independientemente del logo */
-    background: #3b2a1f;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Esto centra tu nueva imagen perfectamente */
-    border: 4px solid;
-    border-color: #7d7d7d #313131 #313131 #7d7d7d;
-    min-height: 74px; /* Asegura que el contenedor no colapse si la imagen tarda en cargar */
-}
-
-.header-title-image {
-    max-height: 40px; /* Ajusta este valor dependiendo de qué tan alto sea tu logo */
-    image-rendering: pixelated; /* Mantiene los píxeles definidos si es pixel art */
-    object-fit: contain;
-}
-
-.header-steve {
-    width: 42px;
-    height: 42px;
-    object-fit: cover;
+.main-logo {
+    width: 100%;
+    max-width: 1250px;
     image-rendering: pixelated;
-    border-radius: 0px;
-    
-    position: absolute; /* Saca al robot del flujo normal del contenedor... */
-    left: 18px; /* ...y lo fija pegado a la izquierda */
-}
-
-
-.icon {
-    width: 26px;
-    height: 26px;
-    image-rendering: pixelated;
+    margin-bottom: 20px;
 }
 
 /* QUICK BUTTONS */
 .quick-buttons {
-    /* Le quitamos el fondo verde oscuro y usamos un gris oscuro neutro */
-    background: #2b2b2b; 
-    padding: 12px;
     display: flex;
-    gap: 14px; /* Más espacio para que no choquen los contornos negros */
+    justify-content: center;
+    gap: 50px;
     flex-wrap: wrap;
-    border-bottom: 4px solid #1e1e1e;
+    width: 100%;
+    max-width: 1250px;
+    margin-bottom: 15px;
+    background: transparent; 
+    border-bottom: none;
+    padding: 0;
 }
 
 .quick-btn {
-    background-color: #a8a8a8; /* El mítico gris de la piedra de interfaz */
+    background-color: #848484;
     color: #ffffff;
     padding: 8px 14px;
     border-radius: 0px;
     cursor: pointer;
-    font-size: 0.75rem;
-    
-    /* El secreto del 3D estilo Minecraft */
+    font-size: 0.95rem;
     border: 3px solid;
-    /* Luz (blanco) arriba/izq, Sombra (gris oscuro) abajo/der */
     border-color: #ffffff #555555 #555555 #ffffff; 
-    
-    /* El borde negro exterior para darle aspecto de "bloque" */
     outline: 2px solid #000000;
-    margin: 2px; /* Evita que el contorno negro se corte */
+    margin: 2px;
 }
 
 .quick-btn:hover {
-    background-color: #a0a0a0; /* El fondo se oscurece un poco */
-    color: #ffff55; /* ¡El clásico texto amarillo de Minecraft al seleccionar! */
+    background-color: #727272;
+    color: #ffff55;
 }
 
 .quick-btn:active {
-    background-color: #8b8b8b;
-    /* Invertimos el bisel para que parezca que el botón se "hunde" */
+    background-color: #6a6a6a;
     border-color: #555555 #ffffff #ffffff #555555; 
 }
 
@@ -129,15 +98,7 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 18px;
-    
-    /* 1. Cambiamos el color sólido por una imagen */
-    /* El gradiente rgba añade una capa de "suciedad" o sombra para que el texto sea legible */
-    background-image:url("{{ url_for('static', filename='image/chat_bg.jpg') }}");
-    
-    background-size: cover;       /* Para que la imagen cubra todo el cuadro */
-    background-position: center;  /* Centrada */
-    background-repeat: no-repeat;
-    
+    background: transparent;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -146,7 +107,6 @@ body {
 
 /* MESSAGES */
 .message {
-    max-width: 100%;
     padding: 4px 8px;
     background-color: rgba(0, 0, 0, 0.7);
     border: none !important;
@@ -154,8 +114,14 @@ body {
     font-size: 0.9rem;
     line-height: 1.6;
     color: #ffffff;
+    display: flex;
+    align-items: flex-start;
+    max-width: 90%;
 }
 
+.message div {
+    flex: 1;
+}
 
 .user-message {
     align-self: flex-end;
@@ -201,7 +167,7 @@ body {
     display: flex;
     align-items: center;
     padding: 10px 18px;
-    background-color: rgba(0, 0, 0, 0.7); /* Fondo transparente negro como los mensajes */
+    background-color: rgba(0, 0, 0, 0.8);
     gap: 10px;
 }
 
@@ -210,9 +176,8 @@ body {
     background: transparent;
     color: #ffffff;
     border: none;
-    outline: none; /* Quita el borde azul molesto al hacer clic */
+    outline: none;
     font-size: 0.9rem;
-    /* La fuente Minecraftia y la sombra ya se heredan del selector global * */
 }
 
 .prompt-prefix {
@@ -231,33 +196,13 @@ body {
     color: white;
 }
 
-.spinner {
-    width: 18px;
-    height: 18px; /* Luz arriba/izquierda, sombra abajo/derecha */
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* STEVE FIX */
-.header-steve {
-    width: 42px;
-    height: 42px;
-    object-fit: cover;
-    image-rendering: pixelated;
-    border-radius: 0px;
-    border: 2px solid;
-    border-color: #55ffff;
-}
 /* AVATARES DE CHAT */
 .chat-avatar {
     width: 32px;
     height: 32px;
-    image-rendering: pixelated; /* ¡Crucial para el look de MC! */
+    image-rendering: pixelated;
     border: 2px solid;
-    margin-bottom: -6px; /* Ajuste para alinear con el texto */
+    margin-bottom: -6px;
     transform: translateY(-3px);
 }
 
@@ -272,31 +217,14 @@ body {
     border: 2px solid #55ffff;
 }
 
-/* Ajuste de alineación para el contenedor del mensaje */
-.message {
-    display: flex;
-    align-items: flex-start; /* Alinea los avatares arriba del texto largo */
-    max-width: 90%; /* Un poco más ancho para dar espacio al avatar */
-}
-
-/* Asegura que el texto markdown no rompa la alineación */
-.message div {
-    flex: 1;
-}
 </style>
+
 </head>
 
 <body>
 
-<div class="chat-container">
-
     <!-- HEADER -->
-    <div class="chat-header">
-        <img src="{{ url_for('static', filename='icons/robot.jpg') }}" class="header-steve">
-
-        <!-- Imagen central: Asegúrate de tener tu logo en la carpeta indicada -->
-        <img src="{{ url_for('static', filename='image/logo_titulo.png') }}" class="header-title-image" alt="Minecraft Logo">
-    </div>
+    <img src="{{ url_for('static', filename='image/logo_titulo.png') }}" class="main-logo" alt="Asistente de Supervivencia">
 
     <!-- QUICK PROMPTS -->
     <div class="quick-buttons">
@@ -308,6 +236,8 @@ body {
     </div>
 
     <!-- CHAT -->
+    <div class="chat-container">
+
     <div class="messages-area" id="messagesArea">
 
         <div class="message assistant-message">
@@ -322,12 +252,6 @@ body {
         <input id="userInput" autocomplete="off" autofocus>
     </div>
 
-    <!-- LOADING -->
-    <div class="loading-indicator" id="loading">
-        <div class="spinner"></div>
-        Analizando mundo...
-    </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -340,21 +264,17 @@ let history = [
 const messages = document.getElementById("messagesArea");
 const input = document.getElementById("userInput");
 
-// Renderiza el historial completo estático
-// Renderiza el historial completo estático con avatares
 function render() {
     messages.innerHTML = "";
     history.forEach(m => {
         const div = document.createElement("div");
         div.className = "message " + (m.role === "user" ? "user-message" : "assistant-message");
         
-        // Rutas de los iconos (Asegúrate de que coincidan con las del header)
-        const steveImgStr = `<img src="{{ url_for('static', filename='icons/steve.jpg') }}" class="chat-avatar" ">`;
+        const steveImgStr = `<img src="{{ url_for('static', filename='icons/steve.jpg') }}" class="chat-avatar">`;
         const robotImgStr = `<img src="{{ url_for('static', filename='icons/robot.jpg') }}" class="chat-avatar">`;
         
         const content = m.role === "assistant" ? marked.parse(m.content, { breaks: true }) : m.content;
         
-        // Inyección de HTML: El avatar va antes o después según el rol
         if (m.role === "user") {
             div.innerHTML = `<div>${content}</div> ${steveImgStr}`;
         } else {
@@ -370,15 +290,12 @@ async function send() {
     const text = input.value.trim();
     if (!text) return;
 
-    // 1. Bloqueamos el input y el botón mientras la IA piensa (evita bugs de doble envío)
     input.disabled = true;
 
-    // 2. Añadir y mostrar mensaje del usuario
     history.push({ role: "user", content: text });
     render();
     input.value = "";
 
-    // 3. Crear burbuja vacía para el bot
     const botDiv = document.createElement("div");
     botDiv.className = "message assistant-message";
     botDiv.innerHTML = '<span style="color:#888;">Pensando...</span>';
@@ -396,14 +313,12 @@ async function send() {
         const decoder = new TextDecoder("utf-8");
         let botText = "";
         const robotImgStr = `<img src="{{ url_for('static', filename='icons/robot.jpg') }}" class="chat-avatar" style="border-color: #55ffff; margin-right: 10px;">`;
-        // 4. Leer el flujo de datos (Stream)
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
             
             botText += decoder.decode(value, { stream: true });
             
-            // EL ESCUDO ANTI-MUROS DE TEXTO (Versión Mejorada)
             let safeText = botText
                 .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
                 .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ")
@@ -414,7 +329,6 @@ async function send() {
             messages.scrollTop = messages.scrollHeight;
         }
 
-        // 5. Guardar en el historial (¡USANDO EL MISMO FILTRO EXACTO!)
         let finalSafeText = botText
             .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
             .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ")
@@ -427,7 +341,6 @@ async function send() {
         botDiv.innerHTML = "❌ Error de conexión.";
     }
     
-    // 6. Desbloqueamos el input para la siguiente pregunta
     input.disabled = false;
     input.focus();
 }
@@ -444,7 +357,6 @@ document.querySelectorAll(".quick-btn").forEach(btn => {
     };
 });
 
-// Render inicial
 render();
 </script>
 
