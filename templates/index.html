@@ -324,6 +324,7 @@ async function send() {
             let safeText = botText
                 .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
                 .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ")
+                .replace(/(Fila Inferior:[^\n]+?[a-záéíóúñ])\s+(Con |Simplemente |Coloca |Recuerda |Ahora |Para |Si |¡|La |El |Estas |Estos |Asegúrate )/g, "$1\n\n$2");
 
 
             
@@ -334,7 +335,7 @@ async function send() {
         let finalSafeText = botText
             .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(###\s)/g, "$1\n\n$2")
             .replace(/([a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\.!?])\s*(-\s)/g, "$1\n- ")
-
+            .replace(/(Fila Inferior:[^\n]+?[a-záéíóúñ])\s+(Con |Simplemente |Coloca |Recuerda |Ahora |Para |Si |¡|La |El |Estas |Estos |Asegúrate )/g, "$1\n\n$2");
 
             
         history.push({ role: "assistant", content: finalSafeText });

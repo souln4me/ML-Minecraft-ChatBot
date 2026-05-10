@@ -59,13 +59,7 @@ def buscar_contexto(query, es_receta):
         if recetas_encontradas:
             contexto.append(f"[INICIO_RECETAS]\n{recetas_encontradas.strip()}\n[FIN_RECETAS]")
 
-    # Búsqueda de Mobs (Entidades)
-    #
- #   for mob, info in DB_MOBS.get("entidades", {}).items():
- #       if mob in query:
- #           contexto.append(f"### Info sobre {mob.title()}\n{info}")
-
-# Búsqueda de Mobs (Entidades y Diccionario cruzado)
+    # Búsqueda de Mobs (Entidades y Diccionario cruzado)
     for mob, info in DB_MOBS.get("entidades", {}).items():
         if mob in query: 
             texto_mob = f"### Características de {mob.title()}\n{info}"
@@ -73,7 +67,6 @@ def buscar_contexto(query, es_receta):
             # Fase 2: Buscar si alguna palabra del diccionario aplica a esta entidad o a la consulta
             glosario_aplicable = []
             for termino, definicion in DB_MOBS.get("diccionario", {}).items():
-                # Buscamos el término tanto en la descripción del mob como en lo que preguntó el usuario
                 if termino in info.lower() or termino in query:
                     glosario_aplicable.append(f"- **{termino.title()}**: {definicion}")
             
@@ -81,6 +74,7 @@ def buscar_contexto(query, es_receta):
                 texto_mob += "\n\n### Glosario Aplicable\n" + "\n".join(glosario_aplicable)
                 
             contexto.append(texto_mob)
+
     # Búsqueda en Guías
     for guia, contenido in DB_GUIAS.items():
         if guia in query:
@@ -90,11 +84,13 @@ def buscar_contexto(query, es_receta):
 
 # --- 3. CONFIGURACIÓN DEL PROMPT ---
 SYSTEM_PROMPT = """
-Eres un experto guía de Minecraft Vanilla. Tu misión es acompañar al jugador con entusiasmo.
-REGLAS:
+Eres un experto guía de Minecraft Vanilla. Tu misión es acompañar al jugador con entusiasmo y precisión técnica.
+REGLAS BASE:
 1. Usa nombres oficiales en español (Adoquín, Mesa de crafteo, etc.).
-2. Formato: Usa guiones "- " para listas y "###" para títulos.
+2. Formato: Usa guiones "- " para listas y "###" para títulos. Si vas a nombrar una lista o título, asegúrate de dejar un espacio vacío antes de empezar a redactar.
 3. No menciones mods.
+4. Eres estricto con los datos técnicos: no inventas recetas ni debilidades de mobs.
+5. Utiliza emojis relacionados a Minecraft.
 """
 
 @app.route("/")
@@ -107,19 +103,21 @@ def chat():
         data = request.get_json()
         history = data.get("messages", [])
         
-        # Analizar intención de los últimos mensajes
+        # Analizar intención (Se eliminan acentos para asegurar el match)
         last_user_msg = next((m["content"] for m in reversed(history) if m["role"] == "user"), "").lower()
+        msg_sin_acentos = last_user_msg.replace('ó','o').replace('á','a').replace('é','e').replace('í','i').replace('ú','u')
         
-        palabras_receta = ["como hacer el", "como hacer la", "como hacer un", "como hacer una", "craftear", "receta de", "fabricar"]
-        quiere_receta = any(p in last_user_msg for p in palabras_receta)
+        # Palabras clave súper amplias y tolerantes a errores
+        palabras_receta = ["hacer", "crafte", "crear", "receta", "fabrica", "armadura", "espada", "pico", "horno", "cofre"]
+        quiere_receta = any(p in msg_sin_acentos for p in palabras_receta)
         
+        # Ojo: Pasamos el mensaje original (last_user_msg) al buscador para que matchee con el JSON
         contexto_oficial = buscar_contexto(last_user_msg, quiere_receta)
 
         # 🛡️ CORTOCIRCUITO: Si pide receta y no existe en el JSON
         if quiere_receta and not contexto_oficial:
             error_msg = "Lo siento, no encuentro esa receta en mi manual oficial. 😅 Asegúrate de escribir el nombre exacto del objeto (ej: 'hacha de piedra')."
             
-            # Función generadora interna para el error
             def generate_error():
                 yield error_msg
                 
@@ -131,24 +129,25 @@ def chat():
             [DATOS OFICIALES]
             {contexto_oficial}
             
-            REGLAS SISTEMA DE VERIFICACIÓN Y LÓGICA (PASOS OBLIGATORIOS):
-            1. PASO DE SEGURIDAD (CRÍTICO): Antes de responder, busca palabras clave como "Inmunidades", "Advertencias" o "Limitaciones" en los [DATOS OFICIALES]. 
-            2. CONTRASTE DE PREMISA: Si la acción que el usuario propone (ej: usar flechas) coincide con una Inmunidad o Advertencia (ej: Inmunidad a Proyectiles), tu respuesta DEBE EMPEZAR INVALIDANDO la propuesta del usuario. Usa frases como: "En realidad, no es posible hacer eso porque..." o "Cuidado, esa estrategia fallará debido a...".
-            3. INFERENCIA TÁCTICA: Una vez descartado lo que NO funciona, usa las "Características" (ej: Altura, Debilidades) para construir una alternativa. Si el dato dice "Inmune a X", busca qué cosa "Y" sí le hace daño o qué límite físico tiene.
-            4. DEDUCCIÓN DE ESTRATEGIAS: No te limites a leer. Si el usuario pide ayuda, usa las propiedades físicas (ej: Altura, Vida, Debilidades) para deducir consejos lógicos (ej: si mide 3 bloques, sugiere espacios de 2; si le daña el agua, sugiere baldes).
-            5. ANTES DE ESTILIZAR LA RESPUESTA: Tomate tu tiempo y piensa, repasa las reglas 1,2,3 y 4 para reafirmar tu respuesta, luego estilizala.
+            COMO MOTOR DE PROCESAMIENTO, DEBES EVALUAR LA SITUACIÓN Y APLICAR SOLO EL MÓDULO CORRECTO:
 
-            ESTILO DE RESPUESTA:
-            - Sé un guía experto, no un "sí a todo". Si el jugador va a cometer un error técnico basado en los datos, es tu DEBER detenerlo.
-            - Si hay [INICIO_RECETAS], transcríbelas sin cambios.
-            - Mantén el tono amigable pero firme con la verdad técnica de Minecraft.
-            
-            PROHIBICIÓN: 
-                - Tienes PROHIBIDO validar una estrategia que los [DATOS OFICIALES] marquen como inútil o imposible.
-                - Tienes PROHIBIDO poner en tu respuesta similes a "según los [DATOS OFICIALES]" o NOMBRES DE LOS JSON de tu base de conocimiento.
+            === MÓDULO A: PREGUNTAS DE CRAFTEO (Si ves [INICIO_RECETAS] en los datos) ===
+            1. Apertura: Frase de entusiasmo de +10 palabras.
+            2. LA IMPRESORA: Tienes la OBLIGACIÓN ESTRICTA de transcribir todo el contenido exacto entre [INICIO_RECETAS] y [FIN_RECETAS]. ¡NO RESUMAS NI OMITAS LAS FILAS!
+            3. SILENCIO TÉCNICO: Tienes PROHIBIDO sumar materiales (ej: "necesitas 8 bloques") y PROHIBIDO explicar cómo usar la mesa de crafteo. 
+            4. Cierre: Un consejo rápido de utilidad.
+
+            === MÓDULO B: COMBATE Y SUPERVIVENCIA (Para mobs y guías) ===
+            1. VERIFICACIÓN (CRÍTICO): Busca "Inmunidades" o "Advertencias".
+            2. INVALIDACIÓN: Si el usuario sugiere algo inútil, EMPIEZA INVALIDANDO su idea (Ej: "Cuidado, no uses proyectiles porque...").
+            3. ESTRATEGIA: Usa las características/debilidades para deducir una táctica real que sí funcione.
+
+            REGLAS GLOBALES (PROHIBICIONES CRÍTICAS):
+            - NUNCA menciones que lees [DATOS OFICIALES] o archivos JSON. Habla como un experto humano.
+            - NUNCA inventes recetas. Si te piden algo que no está en el texto oficial (como armadura de obsidiana), niégate.
             """
         else:
-            instruccion = "Responde amigablemente. Tienes PROHIBIDO inventar recetas si no se te proveen en [DATOS OFICIALES]."
+            instruccion = "Responde amigablemente. Tienes PROHIBIDO inventar recetas o dar datos técnicos específicos si no se te proveen en [DATOS OFICIALES]."
 
         messages = [{"role": "system", "content": SYSTEM_PROMPT + "\n" + instruccion}] + history
 
@@ -157,7 +156,7 @@ def chat():
             completion = client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=messages,
-                temperature=0.1, # Temperatura baja para mayor precisión técnica
+                temperature=0.1, # Baja temperatura para máxima obediencia al contexto
                 stream=True
             )
             for chunk in completion:
