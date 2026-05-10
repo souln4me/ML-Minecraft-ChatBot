@@ -263,6 +263,7 @@ let history = [
 
 const messages = document.getElementById("messagesArea");
 const input = document.getElementById("userInput");
+const sonidoClic = new Audio("{{ url_for('static', filename='audio/click.ogg') }}");
 
 function render() {
     messages.innerHTML = "";
@@ -352,6 +353,7 @@ input.addEventListener("keypress", e => {
 
 document.querySelectorAll(".quick-btn").forEach(btn => {
     btn.onclick = () => {
+        sonidoClic.play();
         input.value = btn.dataset.q;
         send();
     };
