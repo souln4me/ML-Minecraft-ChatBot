@@ -5,7 +5,7 @@ Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura 
 ## 🛠️ Tecnologías Utilizadas
 
 * **Backend:** Python, Flask, Flask-CORS.
-* **IA & LLMs:** OpenAI SDK (NVIDIA API Integration), Prompt Engineering avanzado.
+* **IA & LLMs:** OpenAI SDK (NVIDIA API Integration), Prompt Engineering.
 * **Frontend:** HTML5, CSS3, Vanilla JavaScript, Marked.js.
 * **Almacenamiento de Conocimiento:** Archivos JSON estructurados.
 
