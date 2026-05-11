@@ -39,7 +39,7 @@ def buscar_contexto(query, es_receta):
         recetas_encontradas = ""
         for item, valor in DB_RECETAS.items():
             if item in query:
-                # Manejo de armaduras agrupadas (separadas por ///)
+                # Manejo de armaduras del JSON agrupadas (separadas por ///)
                 if "///" in valor:
                     piezas = valor.split("///")
                     for p in piezas:
@@ -59,12 +59,12 @@ def buscar_contexto(query, es_receta):
         if recetas_encontradas:
             contexto.append(f"[INICIO_RECETAS]\n{recetas_encontradas.strip()}\n[FIN_RECETAS]")
 
-    # Búsqueda de Mobs (Entidades y Diccionario cruzado)
+    # Búsqueda de Mobs
     for mob, info in DB_MOBS.get("entidades", {}).items():
         if mob in query: 
             texto_mob = f"### Características de {mob.title()}\n{info}"
             
-            # Fase 2: Buscar si alguna palabra del diccionario aplica a esta entidad o a la consulta
+            # Buscar si alguna palabra del diccionario aplica a esta entidad o a la consulta
             glosario_aplicable = []
             for termino, definicion in DB_MOBS.get("diccionario", {}).items():
                 if termino in info.lower() or termino in query:
@@ -105,18 +105,18 @@ def chat():
         data = request.get_json()
         history = data.get("messages", [])
         
-        # Analizar intención (Se eliminan acentos para asegurar el match)
+        # Analizar intención
         last_user_msg = next((m["content"] for m in reversed(history) if m["role"] == "user"), "").lower()
         msg_sin_acentos = last_user_msg.replace('ó','o').replace('á','a').replace('é','e').replace('í','i').replace('ú','u')
         
-        # Palabras clave súper amplias y tolerantes a errores
+        # Palabras clave 
         palabras_receta = ["hacer", "crafte", "crear", "receta", "fabrica", "armadura", "espada", "pico", "horno", "cofre"]
         quiere_receta = any(p in msg_sin_acentos for p in palabras_receta)
         
-        # Ojo: Pasamos el mensaje original (last_user_msg) al buscador para que matchee con el JSON
+        # Pasamos el mensaje original (last_user_msg) al buscador para que matchee con el JSON
         contexto_oficial = buscar_contexto(last_user_msg, quiere_receta)
 
-        # 🛡️ CORTOCIRCUITO: Si pide receta y no existe en el JSON
+        # "Cortocircuito" si pide receta y no existe en el JSON
         if quiere_receta and not contexto_oficial:
             error_msg = "Lo siento, no encuentro esa receta en mi manual oficial. 😅 Asegúrate de escribir el nombre exacto del objeto (ej: 'hacha de piedra')."
             
