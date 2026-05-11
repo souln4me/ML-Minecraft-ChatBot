@@ -51,7 +51,9 @@ Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura 
 
 ## 🚀 Ejecución
 
+Para levantar el servidor local, primero ingresa a la carpeta del código:
 ```bash
+cd "ChatBot"
 python app.py
 ```
 
