@@ -1,6 +1,6 @@
 # 🐉 Asistente de Supervivencia - Rumbo a la Dragona
 
-Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura **RAG (Retrieval-Augmented Generation)**. Este chatbot ayuda a los jugadores desde su primer día talando árboles hasta la batalla final contra la Enderdragón, proporcionando información precisa sobre crafteos, debilidades de mobs y estrategias de supervivencia.
+Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura **RAG (Retrieval-Augmented Generation)**. Este chatbot ayuda a los jugadores desde su primer día talando árboles hasta la batalla final contra la Enderdragón, proporcionando información sobre crafteos, debilidades de mobs y estrategias de supervivencia.
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -9,7 +9,7 @@ Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura 
 * **Frontend:** HTML5, CSS3, Vanilla JavaScript, Marked.js.
 * **Almacenamiento de Conocimiento:** Archivos JSON estructurados.
 
-## Instalación de dependencias
+## ⚙️ Instalación de dependencias
 
 1. Clona el repositorio o descarga los archivos del proyecto
 
@@ -35,7 +35,7 @@ Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura 
 
 5. Verifica que todas las dependencias se instalaron correctamente
 
-## Configuración del archivo .env
+## 🔑 Configuración del archivo .env
 
 1. Crea un archivo llamado `.env` en la raíz del proyecto (junto a `app.py`)
 
@@ -49,7 +49,7 @@ Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura 
 
 **Importante**: El archivo `.env` ya está incluido en `.gitignore` y NO debe subirse al repositorio para proteger tus credenciales.
 
-## Ejecución
+## 🚀 Ejecución
 
 ```bash
 python app.py
