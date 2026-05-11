@@ -1,3 +1,14 @@
+# 🐉 Asistente de Supervivencia - Rumbo a la Dragona
+
+Un asistente de supervivencia para Minecraft Vanilla basado en una arquitectura **RAG (Retrieval-Augmented Generation)**. Este chatbot ayuda a los jugadores desde su primer día talando árboles hasta la batalla final contra la Enderdragón, proporcionando información precisa sobre crafteos, debilidades de mobs y estrategias de supervivencia.
+
+## 🛠️ Tecnologías Utilizadas
+
+* **Backend:** Python, Flask, Flask-CORS.
+* **IA & LLMs:** OpenAI SDK (NVIDIA API Integration), Prompt Engineering avanzado.
+* **Frontend:** HTML5, CSS3, Vanilla JavaScript, Marked.js.
+* **Almacenamiento de Conocimiento:** Archivos JSON estructurados.
+
 ## Instalación de dependencias
 
 1. Clona el repositorio o descarga los archivos del proyecto
